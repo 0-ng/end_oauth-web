@@ -57,26 +57,65 @@
 		},
 		methods: {
 			...mapActions(['getAdminData']),
-			async submitForm(formName) {
-				this.$refs[formName].validate(async (valid) => {
+			// async submitForm(formName) {
+            submitForm(formName) {
+
+                // this.$http.post('/login', {
+                //     username: this.loginForm.username,
+                //     password: this.loginForm.password
+                // },{emulateJSON:true}
+                // ).then((res) => {
+                //     console.log(res)
+                // })
+                // this.$axios.post('/login', {
+                //     username: this.loginForm.username,
+                //     password: this.loginForm.password
+                // }).then((res) => {
+                //     // console.log(res)
+                // })
+				this.$refs[formName].validate((valid) => {
+				    var params = { username: this.loginForm.username, password: this.loginForm.password};
+                    var data = '';
+                    for (let attr in params){
+                        data += '&' + attr + '=' + encodeURIComponent(params[attr]);
+                    }//转键值对，然后设置下content-type。axios的content-type是application/json的，不是键值对
+                    data = data.substring(1)
 					if (valid) {
-						const res = await login({user_name: this.loginForm.username, password: this.loginForm.password})
-						if (res.data.status == 1) {
-							this.$message({
-		                        type: 'success',
-		                        message: '登录成功'
-		                    });
-							window.sessionStorage.setItem('token', res.data.token)
-                            Axios.interceptors.request.use(config => {
-                                config.header['Authorization'] = res.data.token
-                            })
-							this.$router.push('manage')
-						}else{
-							this.$message({
-		                        type: 'error',
-		                        message: res.message
-		                    });
-						}
+
+					    // this.$axios.post('/login', data, {headers: { 'content-type': "application/x-www-form-urlencoded" }}).then((res)=>{console.log(res)})
+					    // this.$axios.post('/login', JSON.stringify(params), {headers: { 'content-type': "application/x-www-form-urlencoded" }}).then((res)=>{console.log(res)})
+					    this.$axios.post('/login', data, {headers: { 'content-type': "application/x-www-form-urlencoded" }})
+                        .then((res) => {
+                            console.log(res)
+                            if(res.code == 0){
+                                window.sessionStorage.setItem('token', res.data.token)
+                                Axios.interceptors.request.use(config => {
+                                    config.header['Authorization'] = res.data.token
+                                })
+                                this.$axios.get('/getEnv').then(res => {
+                                    console.log(res)
+                                })
+                            }else{
+
+                            }
+                        })
+						// const res = await login({username: this.loginForm.username, password: this.loginForm.password})
+						// if (res.data.status == 1) {
+						// 	this.$message({
+		                //         type: 'success',
+		                //         message: '登录成功'
+		                //     });
+						// 	window.sessionStorage.setItem('token', res.data.token)
+                        //     Axios.interceptors.request.use(config => {
+                        //         config.header['Authorization'] = res.data.token
+                        //     })
+						// 	this.$router.push('manage')
+						// }else{
+						// 	this.$message({
+		                //         type: 'error',
+		                //         message: res.message
+		                //     });
+						// }
 					} else {
 						this.$notify.error({
 							title: '错误',
