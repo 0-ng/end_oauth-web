@@ -57,6 +57,14 @@
 		},
 		methods: {
 			...mapActions(['getAdminData']),
+            getParamsData(params) {
+			    var data = '';
+                for (let attr in params){
+                    data += '&' + attr + '=' + encodeURIComponent(params[attr]);
+                }//转键值对，然后设置下content-type。axios的content-type是application/json的，不是键值对
+                data = data.substring(1)
+				return data
+            },
 			// async submitForm(formName) {
             submitForm(formName) {
 
@@ -75,25 +83,24 @@
                 // })
 				this.$refs[formName].validate((valid) => {
 				    var params = { username: this.loginForm.username, password: this.loginForm.password};
-                    var data = '';
-                    for (let attr in params){
-                        data += '&' + attr + '=' + encodeURIComponent(params[attr]);
-                    }//转键值对，然后设置下content-type。axios的content-type是application/json的，不是键值对
-                    data = data.substring(1)
-					if (valid) {
-
-					    // this.$axios.post('/login', data, {headers: { 'content-type': "application/x-www-form-urlencoded" }}).then((res)=>{console.log(res)})
-					    // this.$axios.post('/login', JSON.stringify(params), {headers: { 'content-type': "application/x-www-form-urlencoded" }}).then((res)=>{console.log(res)})
+                    var data = this.getParamsData(params)
+				    if (valid) {
 					    this.$axios.post('/login', data, {headers: { 'content-type': "application/x-www-form-urlencoded" }})
                         .then((res) => {
                             console.log(res)
-                            if(res.code == 0){
-                                window.sessionStorage.setItem('token', res.data.token)
-                                Axios.interceptors.request.use(config => {
-                                    config.header['Authorization'] = res.data.token
-                                })
-                                this.$axios.get('/getEnv').then(res => {
+                            if(res.data.code == "0"){
+                                // Axios.interceptors.request.use(config => {
+                                //     config.header['Authorization'] = res.data.token
+                                // })
+                                console.log(res.data.data.token.type)
+                                window.sessionStorage.setItem('oauth-token', res.data.data.token)
+                                var params = {oauth_token:res.data.data.token}
+                                var data = this.getParamsData(params)
+                                this.$axios.post('/getEnv', data, {headers: { 'content-type': "application/x-www-form-urlencoded" }})
+                                .then((res) => {
                                     console.log(res)
+                                    window.location.href = res.data.data.env.redirectUrl + "?oauth-token=" + window.sessionStorage.getItem('oauth-token')
+                                    // this.$router.push(res.data.data.env.redirectUrl)
                                 })
                             }else{
 
