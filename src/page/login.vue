@@ -65,22 +65,7 @@
                 data = data.substring(1)
 				return data
             },
-			// async submitForm(formName) {
             submitForm(formName) {
-
-                // this.$http.post('/login', {
-                //     username: this.loginForm.username,
-                //     password: this.loginForm.password
-                // },{emulateJSON:true}
-                // ).then((res) => {
-                //     console.log(res)
-                // })
-                // this.$axios.post('/login', {
-                //     username: this.loginForm.username,
-                //     password: this.loginForm.password
-                // }).then((res) => {
-                //     // console.log(res)
-                // })
 				this.$refs[formName].validate((valid) => {
 				    var params = { username: this.loginForm.username, password: this.loginForm.password};
                     var data = this.getParamsData(params)
@@ -93,36 +78,22 @@
                                 //     config.header['Authorization'] = res.data.token
                                 // })
                                 console.log(res.data.data.token.type)
+                                localStorage.setItem('oauth-token', res.data.data.token)
                                 window.sessionStorage.setItem('oauth-token', res.data.data.token)
+                                console.log(localStorage.getItem('oauth-token'))
+                                console.log(window.sessionStorage.getItem('oauth-token'))
                                 var params = {oauth_token:res.data.data.token}
                                 var data = this.getParamsData(params)
                                 this.$axios.post('/getEnv', data, {headers: { 'content-type': "application/x-www-form-urlencoded" }})
                                 .then((res) => {
                                     console.log(res)
-                                    window.location.href = res.data.data.env.redirectUrl + "?oauth-token=" + window.sessionStorage.getItem('oauth-token')
+                                    window.location.href = res.data.data.env.redirectUrl + "?code=" + res.data.data.code
                                     // this.$router.push(res.data.data.env.redirectUrl)
                                 })
                             }else{
 
                             }
                         })
-						// const res = await login({username: this.loginForm.username, password: this.loginForm.password})
-						// if (res.data.status == 1) {
-						// 	this.$message({
-		                //         type: 'success',
-		                //         message: '登录成功'
-		                //     });
-						// 	window.sessionStorage.setItem('token', res.data.token)
-                        //     Axios.interceptors.request.use(config => {
-                        //         config.header['Authorization'] = res.data.token
-                        //     })
-						// 	this.$router.push('manage')
-						// }else{
-						// 	this.$message({
-		                //         type: 'error',
-		                //         message: res.message
-		                //     });
-						// }
 					} else {
 						this.$notify.error({
 							title: '错误',
