@@ -67,7 +67,9 @@
             },
             submitForm(formName) {
 				this.$refs[formName].validate((valid) => {
-				    var params = { username: this.loginForm.username, password: this.loginForm.password};
+				    var username = this.loginForm.username
+				    var password = this.loginForm.password
+				    var params = { username: username, password: password};
                     var data = this.getParamsData(params)
 				    if (valid) {
 					    this.$axios.post('/login', data, {headers: { 'content-type': "application/x-www-form-urlencoded" }})
@@ -87,7 +89,7 @@
                                 this.$axios.post('/getEnv', data, {headers: { 'content-type': "application/x-www-form-urlencoded" }})
                                 .then((res) => {
                                     console.log(res)
-                                    window.location.href = res.data.data.env.redirectUrl + "?code=" + res.data.data.code
+                                    window.location.href = res.data.data.env.redirectUrl + "?code=" + res.data.data.code + "&username=" + username
                                     // this.$router.push(res.data.data.env.redirectUrl)
                                 })
                             }else{
