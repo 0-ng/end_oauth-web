@@ -27,6 +27,7 @@
 <script>
 	import {login, getAdminInfo} from '@/api/getData'
 	import {mapActions, mapState} from 'vuex'
+    // import  jwt  from  'jsonwebtoken'
 
 	export default {
 	    data(){
@@ -47,16 +48,62 @@
 			}
 		},
 		mounted(){
-			this.showLogin = true;
-			if (!this.adminInfo.id) {
-    			this.getAdminData()
-    		}
+            console.log("???")
+    		this.showLogin = true;
+			// if (!this.adminInfo.id) {
+    		// 	this.getAdminData()
+    		// }
+
+            if(this.GetQueryString("logout") != ""){
+                console.log("logout", this.GetQueryString("logout"))
+                window.sessionStorage.removeItem('oauth-token')
+            }else{
+                let Authorization = window.sessionStorage.getItem('oauth-token')
+                console.log("Authorization", Authorization)
+                if(this.checkAuthorization(Authorization)){
+                    console.log("sessionStorage success")
+                    // let jwt = require('jsonwebtoken');
+                    // let env = jwt.decode(authorization)
+                    var params = {oauth_token: Authorization}
+                    var data = this.getParamsData(params)
+                    this.$axios.post('/env', data, {headers: { 'content-type': "application/x-www-form-urlencoded" }})
+                    .then((res) => {
+                        console.log(res)
+                        window.location.href = res.data.data.env.redirectUrl + "?code=" + res.data.data.code
+                    })
+                }
+            }
 		},
 		computed: {
 			...mapState(['adminInfo']),
 		},
 		methods: {
 			...mapActions(['getAdminData']),
+            //
+            // 根据参数名获取url中的参数
+            GetQueryString(name) {
+                var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i");
+                var r = window.location.search.substr(1).match(reg); //获取url中"?"符后的字符串并正则匹配
+                var context = "";
+                if (r != null)
+                  context = r[2];
+                reg = null;
+                r = null;
+                return context == null || context == "" || context == "undefined" ? "" : context;
+            },
+            checkAuthorization(authorization){
+                console.log("checkAuthorization " + authorization)
+                if(authorization == null){
+                  return false
+                }
+                // let  jwt = require('jsonwebtoken');
+                // let env = jwt.decode(authorization)
+                // if(env == null){
+                //   return false
+                // }
+
+                return true
+            },
             getParamsData(params) {
 			    var data = '';
                 for (let attr in params){
@@ -80,13 +127,13 @@
                                 //     config.header['Authorization'] = res.data.token
                                 // })
                                 console.log(res.data.data.token.type)
-                                localStorage.setItem('oauth-token', res.data.data.token)
+                                // localStorage.setItem('oauth-token', res.data.data.token)
                                 window.sessionStorage.setItem('oauth-token', res.data.data.token)
                                 console.log(localStorage.getItem('oauth-token'))
                                 console.log(window.sessionStorage.getItem('oauth-token'))
                                 var params = {oauth_token:res.data.data.token}
                                 var data = this.getParamsData(params)
-                                this.$axios.post('/getEnv', data, {headers: { 'content-type': "application/x-www-form-urlencoded" }})
+                                this.$axios.post('/env', data, {headers: { 'content-type': "application/x-www-form-urlencoded" }})
                                 .then((res) => {
                                     console.log(res)
                                     window.location.href = res.data.data.env.redirectUrl + "?code=" + res.data.data.code + "&username=" + username
